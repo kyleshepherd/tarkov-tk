@@ -1,3 +1,7 @@
+require('dotenv').config();
+
+var client = require('../db_helper');
+
 module.exports = async (msg) => {
 	if (msg.guild.id === process.env.SERVER_ID) {
 		const message = msg.content.toLowerCase();
