@@ -1,9 +1,11 @@
 const start = require('./start');
+const log = require('./log');
 
 require('dotenv').config();
 
 const commands = {
 	start,
+	log
 };
 
 module.exports = async (msg) => {
