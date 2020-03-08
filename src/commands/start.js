@@ -4,7 +4,6 @@ module.exports = (msg) => {
 	const tableCheck = 'SELECT 1 from kills LIMIT 1;';
 	client.query(tableCheck, async function (err, result) {
 		if (result) {
-			console.log(result);
 			//Table exists
 			await msg.channel.send('Tarkov TK has already been setup on this server. Use !help to see how to use Tarkov TK.');
 		} else {
