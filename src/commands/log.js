@@ -16,7 +16,7 @@ module.exports = async (msg, args) => {
 			checkForPlayer(killer, msg);
 			checkForPlayer(victim, msg);
 
-			const killLog = 'INSERT INTO kills (killer, victim, value, rating) VALUES ("' + killer.id + '", "' + victim.id + '");';
+			const killLog = 'INSERT INTO kills (killer, victim) VALUES ("' + killer.id + '", "' + victim.id + '");';
 
 			db.query(killLog, async function (err) {
 				if (err) throw err;
