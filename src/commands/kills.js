@@ -7,6 +7,12 @@ module.exports = async (msg) => {
 		players[i].kills = playerKills[0].killCount;
 	}
 	players = sortByKey(players, 'kills');
+	
+	let killMsg = 'Most Team Kills \n';
+	for (let i = 0; i < players.length; i++) {
+		killMsg += (i + 1) + '. <@' + players[i].player_id + '> - ' + players[i].kills + ' TKs \n';
+	}
+	await msg.channel.send(killMsg);
 };
 
 function get_players()
