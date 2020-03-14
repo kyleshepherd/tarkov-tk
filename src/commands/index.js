@@ -2,6 +2,7 @@ const start = require('./start');
 const log = require('./log');
 const kills = require('./kills');
 const deaths = require('./deaths');
+const help = require('./help');
 
 require('dotenv').config();
 
@@ -9,7 +10,8 @@ const commands = {
 	start,
 	log,
 	kills,
-	deaths
+	deaths,
+	help
 };
 
 module.exports = async (msg) => {
