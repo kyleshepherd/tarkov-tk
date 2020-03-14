@@ -6,3 +6,8 @@ var db = module.exports = require('mysql').createConnection({
 	password: process.env.DB_PASS,
 	database: process.env.DB_NAME
 });
+
+db.connect(function (err) {
+	if (err) throw err;
+	console.log('Connected');
+});

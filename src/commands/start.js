@@ -1,10 +1,6 @@
 var db = require('../db_helper');
 
 module.exports = (msg) => {
-	db.connect(function (err) {
-		if (err) throw err;
-		console.log('Connected');
-	});
 	const tableCheck = 'SELECT 1 from kills LIMIT 1;';
 	db.query(tableCheck, async function (err, result) {
 		if (result) {
@@ -23,5 +19,4 @@ module.exports = (msg) => {
 			});
 		}
 	});
-	db.end();
 };

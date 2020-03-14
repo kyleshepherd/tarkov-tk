@@ -1,10 +1,6 @@
 var db = require('../db_helper');
 
 module.exports = async (msg, args) => {
-	db.connect(function (err) {
-		if (err) throw err;
-		console.log('Connected');
-	});
 	if (args.length < 2) {
 		await msg.channel.send('Make sure you tag 2 users in !log \n e.g. `!log @Killer @Victim`');
 	} else {
@@ -27,7 +23,6 @@ module.exports = async (msg, args) => {
 			});
 		}
 	}
-	db.end();
 };
 
 function checkForPlayer(player, msg) {

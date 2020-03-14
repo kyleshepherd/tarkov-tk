@@ -1,10 +1,6 @@
 var db = require('../db_helper');
 
 module.exports = async (msg) => {
-	db.connect(function (err) {
-		if (err) throw err;
-		console.log('Connected');
-	});
 	var players = await get_players();
 	for (let i = 0; i < players.length; i++) {
 		let playerKills = await get_player_kills(players[i].player_id);
@@ -12,12 +8,11 @@ module.exports = async (msg) => {
 	}
 	players = sortByKey(players, 'kills');
 	
-	let killMsg = 'Most Team Kills \n';
+	let killMsg = '**Most Team Kills \n**';
 	for (let i = 0; i < players.length; i++) {
 		killMsg += (i + 1) + '. <@' + players[i].player_id + '> - ' + players[i].kills + ' TKs \n';
 	}
 	await msg.channel.send(killMsg);
-	db.end();
 };
 
 function get_players()
