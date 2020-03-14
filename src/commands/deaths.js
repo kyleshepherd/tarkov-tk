@@ -1,6 +1,10 @@
 var db = require('../db_helper');
 
 module.exports = async (msg) => {
+	db.connect(function (err) {
+		if (err) throw err;
+		console.log('Connected');
+	});
 	var players = await get_players();
 	for (let i = 0; i < players.length; i++) {
 		let playerDeaths = await get_player_deaths(players[i].player_id);
@@ -13,6 +17,7 @@ module.exports = async (msg) => {
 		deathMsg += (i + 1) + '. <@' + players[i].player_id + '> - ' + players[i].deaths + ' TDs \n';
 	}
 	await msg.channel.send(deathMsg);
+	db.end();
 };
 
 function get_players()
