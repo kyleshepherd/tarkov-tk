@@ -1,13 +1,12 @@
 var db = require('../db_helper');
+const db_checker = require('../db_checker');
 
-module.exports = (msg) => {
-	const tableCheck = 'SELECT 1 from kills_' + msg.guild.id + ' LIMIT 1;';
-	db.query(tableCheck, async function (err, result) {
+module.exports = async (msg) => {
+	var existing = db_checker(msg);
+	existing.then(function(result) {
 		if (result) {
-			//Table exists
-			await msg.channel.send('Tarkov TK has already been setup on this server. Use `!help` to see how to use Tarkov TK.');
+			msg.channel.send('Tarkov TK has already been setup on this server. Use `!help` to see how to use Tarkov TK.');
 		} else {
-			//Table doesn't exist
 			const createKillTable = 'CREATE TABLE kills_' + msg.guild.id + ' (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, killer VARCHAR(255), victim VARCHAR(255), value INT(255), rating INT(1));';
 			db.query(createKillTable, function (err) {
 				if (err) throw err;
