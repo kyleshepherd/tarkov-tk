@@ -18,7 +18,7 @@ module.exports = async (msg) => {
 			}
 			await msg.channel.send(deathMsg);
 		} else {
-			await msg.channel.send('Tarkov TK has not been set up on this server. Run `!start` to do so.');
+			await msg.channel.send('Tarkov TK has not been set up on this server. Run `!tkstart` to do so.');
 		}
 	});
 	

@@ -6,10 +6,10 @@ module.exports = async (msg, args) => {
 	existing.then(async function(result) {
 		if (result) {
 			if (args.length < 2) {
-				await msg.channel.send('Make sure you tag 2 users in !log \n e.g. `!log @Killer @Victim`');
+				await msg.channel.send('Make sure you tag 2 users in !tklog \n e.g. `!tklog @Killer @Victim`');
 			} else {
 				if (msg.mentions.users.size < 2) {
-					await msg.channel.send('Make sure you tag 2 users in !log \n e.g. `!log @Killer @Victim`');
+					await msg.channel.send('Make sure you tag 2 users in !tklog \n e.g. `!tklog @Killer @Victim`');
 				} else {
 					const iterator = msg.mentions.users.values();
 		
@@ -28,7 +28,7 @@ module.exports = async (msg, args) => {
 				}
 			}
 		} else {
-			await msg.channel.send('Tarkov TK has not been set up on this server. Run `!start` to do so.');
+			await msg.channel.send('Tarkov TK has not been set up on this server. Run `!tkstart` to do so.');
 		}
 	});
 	

@@ -1,17 +1,17 @@
-const start = require('./start');
-const log = require('./log');
-const kills = require('./kills');
-const deaths = require('./deaths');
-const help = require('./help');
+const tkstart = require('./start');
+const tklog = require('./log');
+const tkkills = require('./kills');
+const tkdeaths = require('./deaths');
+const tkhelp = require('./help');
 
 require('dotenv').config();
 
 const commands = {
-	start,
-	log,
-	kills,
-	deaths,
-	help
+	tkstart,
+	tklog,
+	tkkills,
+	tkdeaths,
+	tkhelp
 };
 
 module.exports = async (msg) => {
