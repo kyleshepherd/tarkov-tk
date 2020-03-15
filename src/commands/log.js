@@ -15,7 +15,7 @@ module.exports = async (msg, args) => {
 			checkForPlayer(killer, msg);
 			checkForPlayer(victim, msg);
 
-			const killLog = 'INSERT INTO kills (killer, victim) VALUES ("' + killer.id + '", "' + victim.id + '");';
+			const killLog = 'INSERT INTO kills_' + msg.guild.id + ' (killer, victim) VALUES ("' + killer.id + '", "' + victim.id + '");';
 
 			db.query(killLog, async function (err) {
 				if (err) throw err;
@@ -26,11 +26,11 @@ module.exports = async (msg, args) => {
 };
 
 function checkForPlayer(player, msg) {
-	const playerCheck = 'SELECT * FROM players WHERE player_id = ' + player.id + ';';
+	const playerCheck = 'SELECT * FROM players_' + msg.guild.id + ' WHERE player_id = ' + player.id + ';';
 	db.query(playerCheck, function (err, result) {
 		if (err) throw err;
 		if (result === undefined || result.length == 0) {
-			const insertPlayer = 'INSERT INTO players (player_id, name) VALUES ("' + player.id + '", "' + player.username + '");';
+			const insertPlayer = 'INSERT INTO players_' + msg.guild.id + ' (player_id, name) VALUES ("' + player.id + '", "' + player.username + '");';
 			db.query(insertPlayer);
 		} 
 	});

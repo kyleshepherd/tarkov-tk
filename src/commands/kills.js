@@ -1,9 +1,9 @@
 var db = require('../db_helper');
 
 module.exports = async (msg) => {
-	var players = await get_players();
+	var players = await get_players(msg);
 	for (let i = 0; i < players.length; i++) {
-		let playerKills = await get_player_kills(players[i].player_id);
+		let playerKills = await get_player_kills(players[i].player_id, msg);
 		players[i].kills = playerKills[0].killCount;
 	}
 	players = sortByKey(players, 'kills');
@@ -15,10 +15,10 @@ module.exports = async (msg) => {
 	await msg.channel.send(killMsg);
 };
 
-function get_players()
+function get_players(msg)
 {
 	return new Promise((resolve, reject) => {
-		var sql = 'SELECT player_id FROM players;';
+		var sql = 'SELECT player_id FROM players_' + msg.guild.id + ';';
 		db.query(sql, function (err, result) {
 			if (err) reject(err);
 			resolve(result);
@@ -26,9 +26,9 @@ function get_players()
 	});
 }
 
-function get_player_kills(player_id) {
+function get_player_kills(player_id, msg) {
 	return new Promise((resolve, reject) => {
-		var sql = 'SELECT COUNT(*) AS killCount FROM kills WHERE killer = ?;';
+		var sql = 'SELECT COUNT(*) AS killCount FROM kills_' + msg.guild.id + ' WHERE killer = ?;';
 		db.query(sql, player_id, function (err, result) {
 			if (err) reject(err);
 			resolve(result);
