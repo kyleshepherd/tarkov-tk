@@ -7,7 +7,7 @@ module.exports = async (msg) => {
 		if (result) {
 			msg.channel.send('Tarkov TK has already been setup on this server. Use `!tkhelp` to see how to use Tarkov TK.');
 		} else {
-			const createKillTable = 'CREATE TABLE kills_' + msg.guild.id + ' (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, killer VARCHAR(255), victim VARCHAR(255), value INT(255), rating INT(1));';
+			const createKillTable = 'CREATE TABLE kills_' + msg.guild.id + ' (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, killer VARCHAR(255), victim VARCHAR(255), reason VARCHAR(255), date DATE);';
 			db.query(createKillTable, function (err) {
 				if (err) throw err;
 				const createPlayerTable = 'CREATE TABLE players_' + msg.guild.id + ' (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, player_id VARCHAR(255), name VARCHAR(255));';
