@@ -23,7 +23,6 @@ module.exports = async (msg, args) => {
 					if (args.length > 2) {
 						var reasonArr = args.splice(2);
 						var reason = reasonArr.join(' ');
-						console.log(reason);
 					}
 		
 					var killLog = '';
