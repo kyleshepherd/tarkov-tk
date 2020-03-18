@@ -6,7 +6,7 @@ module.exports = async (msg, args) => {
 	existing.then(async function(result) {
 		if (result) {
 			if (args.length < 1) {
-				await msg.channel.send('Make sure you tag a user to see their stats e.g. `!log @Player`');
+				console.log('print stats for server');
 			} else {
 				if (msg.mentions.users.size < 1) {
 					await msg.channel.send('Make sure you tag a user to see their stats e.g. `!log @Player`');
@@ -20,7 +20,7 @@ module.exports = async (msg, args) => {
 						if (result === undefined || result.length == 0) {
 							await msg.channel.send('The tagged player does not exist in the database.');
 						} else {
-							const killQuery = 'SELECT * FROM kills_' + msg.guild.id + ' WHERE killer = ' + player.id + ';';
+							const killQuery = 'SELECT * FROM kills_' + msg.guild.id + ' WHERE killer = ' + player.id + ' ORDER BY id DESC;';
 							db.query(killQuery, async function (err, result) {
 								if (err) throw err;
 								if (result === undefined || result.length == 0) {
