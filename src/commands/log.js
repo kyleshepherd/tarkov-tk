@@ -34,7 +34,7 @@ module.exports = async (msg, args) => {
 					}
 					db.query(killLog, async function (err) {
 						if (err) throw err;
-						await msg.channel.send('Kill by ' + killer.username + ' on ' + victim.username + ' logged.');
+						await msg.channel.send('Kill by **' + killer.username + '** on **' + victim.username + '** logged.');
 					});
 				}
 			}

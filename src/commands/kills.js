@@ -14,7 +14,8 @@ module.exports = async (msg) => {
 			
 			let killMsg = '**Most Team Kills \n**';
 			for (let i = 0; i < players.length; i++) {
-				killMsg += (i + 1) + '. <@' + players[i].player_id + '> - ' + players[i].kills + ' TKs \n';
+				var playerName = await get_player_name(msg, players[i].player_id);
+				killMsg += (i + 1) + '. **' + playerName + '** - ' + players[i].kills + ' TKs \n';
 			}
 			await msg.channel.send(killMsg);
 		} else {
@@ -23,6 +24,15 @@ module.exports = async (msg) => {
 	});
 	
 };
+
+function get_player_name(msg, player_id) {
+	return new Promise((resolve) => {
+		var playerObj = msg.client.users.fetch(player_id);
+		playerObj.then(function (result) {
+			resolve(result.username);
+		});
+	});
+}
 
 function get_players(msg)
 {
