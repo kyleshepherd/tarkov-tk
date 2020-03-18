@@ -4,6 +4,7 @@ const tkkills = require('./kills');
 const tkdeaths = require('./deaths');
 const tkhelp = require('./help');
 const tk = require('./stats');
+const tkremove = require('./remove');
 
 require('dotenv').config();
 
@@ -13,7 +14,8 @@ const commands = {
 	tkkills,
 	tkdeaths,
 	tkhelp,
-	tk
+	tk,
+	tkremove
 };
 
 module.exports = async (msg) => {
