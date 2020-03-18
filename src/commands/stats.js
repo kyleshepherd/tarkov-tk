@@ -26,11 +26,13 @@ module.exports = async (msg, args) => {
 								if (result === undefined || result.length == 0) {
 									await msg.channel.send('<@' + player.id + '> hasn\'t team killed anyone...yet');
 								} else {
-									var statMsg = '**<@' + player.id + '>\'s Team Kills:** \n \n';
+									var playerName = await get_player_name(msg, player.id)
+									var statMsg = '**' + playerName + ' Team Kills:** \n \n';
 									for (let i = 0; i < result.length; i++) {
+										var victimName = await get_player_name(msg, result[i].victim);
 										var date = new Date(result[i].date);
 										date = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
-										statMsg += date + ' - Victim: <@' + result[i].victim + '> ';
+										statMsg += date + ' - Victim: **' + victimName + '** ';
 										if (result[i].reason != null) {
 											statMsg += '- Reason: "' + result[i].reason + '"';
 										}
@@ -47,5 +49,13 @@ module.exports = async (msg, args) => {
 			await msg.channel.send('Tarkov TK has not been set up on this server. Run `!tkstart` to do so.');
 		}
 	});
-	
 };
+
+function get_player_name(msg, player_id) {
+	return new Promise((resolve) => {
+		var playerObj = msg.client.users.fetch(player_id);
+		playerObj.then(function (result) {
+			resolve(result.username);
+		});
+	});
+}
