@@ -6,7 +6,23 @@ module.exports = async (msg, args) => {
 	existing.then(async function(result) {
 		if (result) {
 			if (args.length < 1) {
-				console.log('print stats for server');
+				var sql = 'SELECT * FROM kills_' + msg.guild.id + ' ORDER BY id DESC';
+				db.query(sql, async function(err, result) {
+					if (err) throw err;
+					var statMsg = '**Server Kill Stats** \n \n';
+					for (let i = 0; i < result.length; i++) {
+						var killerName = await get_player_name(msg, result[i].killer);
+						var victimName = await get_player_name(msg, result[i].victim);
+						var date = new Date(result[i].date);
+						date = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
+						statMsg += date + ' - Killer: **' + killerName + '** - Victim: **' + victimName + '** ';
+						if (result[i].reason != null) {
+							statMsg += '- Reason: "' + result[i].reason + '"';
+						}
+						statMsg += '\n \n';
+					}
+					await msg.channel.send(statMsg);
+				});
 			} else {
 				if (msg.mentions.users.size < 1) {
 					await msg.channel.send('Make sure you tag a user to see their stats e.g. `!log @Player`');
