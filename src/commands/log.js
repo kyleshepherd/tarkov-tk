@@ -11,7 +11,6 @@ module.exports = async (msg, args) => {
 
 			const killer = iterator.next().value;
 			const victim = iterator.next().value;
-			const date = formatDate(new Date());
 
 			let reason = '';
 
@@ -25,7 +24,7 @@ module.exports = async (msg, args) => {
 				killer: killer.id,
 				victim: victim.id,
 				reason: reason,
-				date: date,
+				date: new Date(),
 			})
 				.then(() => {
 					msg.channel.send('Kill by **' + killer.username + '** on **' + victim.username + '** logged.');
@@ -36,17 +35,3 @@ module.exports = async (msg, args) => {
 		}
 	}
 };
-
-function formatDate(date) {
-	let d = new Date(date),
-		month = '' + (d.getMonth() + 1),
-		day = '' + d.getDate(),
-		year = d.getFullYear();
-
-	if (month.length < 2)
-		month = '0' + month;
-	if (day.length < 2)
-		day = '0' + day;
-
-	return [year, month, day].join('-');
-}

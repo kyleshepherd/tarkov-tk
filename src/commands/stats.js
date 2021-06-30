@@ -1,4 +1,9 @@
 module.exports = async (msg, args) => {
+	if (args.length < 1) {
+		// stats for whole server
+	} else {
+		// stats for single player
+	}
 	// var existing = db_checker(msg);
 	// existing.then(async function(result) {
 	// 	if (result) {
