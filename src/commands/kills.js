@@ -30,10 +30,16 @@ module.exports = async (msg) => {
 	let killMsg = '**Most Team Kills\n**';
 	for (let i = 0; i < playerKills.length; i++) {
 		let playerName = '';
-		await msg.client.users.fetch(playerKills[i].player)
-			.then(user => {
-				playerName = user.username;
-			});
+		const player = msg.guild.member(playerKills[i].player);
+		if (player && player.nickname) {
+			playerName = player.nickname;
+		} else {
+			await msg.client.users.fetch(playerKills[i].player)
+				.then(user => {
+					playerName = user.username;
+				});
+		}
+
 		killMsg += (i + 1) + '. **' + playerName + '** - ' + playerKills[i].killCount + ' TKs\n';
 	}
 

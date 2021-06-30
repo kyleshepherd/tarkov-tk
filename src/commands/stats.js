@@ -21,15 +21,26 @@ module.exports = async (msg, args) => {
 		for (let i = 0; i < stats.length; i++) {
 			let killerName = '';
 			let victimName = '';
-			await msg.client.users.fetch(stats[i].killer)
-				.then(user => {
-					killerName = user.username;
-				});
 
-			await msg.client.users.fetch(stats[i].victim)
-				.then(user => {
-					victimName = user.username;
-				});
+			const killer = msg.guild.member(stats[i].killer);
+			if (killer && killer.nickname) {
+				killerName = killer.nickname;
+			} else {
+				await msg.client.users.fetch(stats[i].killer)
+					.then(user => {
+						killerName = user.username;
+					});
+			}
+
+			const victim  = msg.guild.member(stats[i].victim);
+			if (victim && victim.nickname) {
+				victimName = victim.nickname;
+			} else {
+				await msg.client.users.fetch(stats[i].victim)
+					.then(user => {
+						victimName = user.username;
+					});
+			}
 
 			const date = stats[i].date.toDate();
 
@@ -62,10 +73,15 @@ module.exports = async (msg, args) => {
 					console.log('Error getting documents: ', error);
 				});
 			let killerName = '';
-			await msg.client.users.fetch(player.id)
-				.then(user => {
-					killerName = user.username;
-				});
+			const killer = msg.guild.member(player.id);
+			if (killer && killer.nickname) {
+				killerName = killer.nickname;
+			} else {
+				await msg.client.users.fetch(player.id)
+					.then(user => {
+						killerName = user.username;
+					});
+			}
 
 			if (stats.length === 0) {
 				msg.channel.send(killerName + ' hasn\'t team killed anyone...yet');

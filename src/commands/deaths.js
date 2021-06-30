@@ -31,10 +31,15 @@ module.exports = async (msg) => {
 	let killMsg = '**Most Team Deaths\n**';
 	for (let i = 0; i < playerDeaths.length; i++) {
 		let playerName = '';
-		await msg.client.users.fetch(playerDeaths[i].player)
-			.then(user => {
-				playerName = user.username;
-			});
+		const player = msg.guild.member(playerDeaths[i].player);
+		if (player && player.nickname) {
+			playerName = player.nickname;
+		} else {
+			await msg.client.users.fetch(playerDeaths[i].player)
+				.then(user => {
+					playerName = user.username;
+				});
+		}
 
 		killMsg += (i + 1) + '. **' + playerName + '** - ' + playerDeaths[i].killCount + ' TDs\n';
 	}
