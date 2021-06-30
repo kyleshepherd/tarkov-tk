@@ -1,4 +1,3 @@
-const tkstart = require('./start');
 const tklog = require('./log');
 const tkkills = require('./kills');
 const tkdeaths = require('./deaths');
@@ -11,7 +10,6 @@ const tkreset = require('./reset');
 require('dotenv').config();
 
 const commands = {
-	tkstart,
 	tklog,
 	tkkills,
 	tkdeaths,

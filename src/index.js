@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
-const firebase = require('firebase');
+const firebase = require('firebase/app');
+require('firebase/firestore');
 
 const commandHandler = require('./commands');
 
