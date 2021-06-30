@@ -7,18 +7,24 @@ module.exports = async (msg, args) => {
 		if (msg.mentions.users.size < 2) {
 			await msg.channel.send('Make sure you tag 2 users in !tklog \n e.g. `!tklog @Killer @Victim`');
 		} else {
-			// log kill
 			const iterator = msg.mentions.users.values();
 
 			const killer = iterator.next().value;
 			const victim = iterator.next().value;
 			const date = formatDate(new Date());
 
+			let reason = '';
+
+			if (args.length > 2) {
+				const reasonArr = args.splice(2);
+				reason = reasonArr.join(' ');
+			}
+
 			firebase.firestore().collection('kills').add({
 				serverId: msg.guild.id,
 				killer: killer.id,
 				victim: victim.id,
-				reason: '',
+				reason: reason,
 				date: date,
 			})
 				.then(() => {
@@ -27,39 +33,8 @@ module.exports = async (msg, args) => {
 				.catch((error) => {
 					console.error('Error writing document: ', error);
 				});
-
 		}
 	}
-	// 				const iterator = msg.mentions.users.values();
-
-	// 				const killer = iterator.next().value;
-	// 				const victim = iterator.next().value;
-	// 				var date = formatDate(new Date());
-
-	// 				checkForPlayer(killer, msg);
-	// 				checkForPlayer(victim, msg);
-
-	// 				if (args.length > 2) {
-	// 					var reasonArr = args.splice(2);
-	// 					var reason = reasonArr.join(' ');
-	// 				}
-
-	// 				var killLog = '';
-	// 				if (reason) {
-	// 					killLog = 'INSERT INTO kills_' + msg.guild.id + ' (killer, victim, reason, date) VALUES ("' + killer.id + '", "' + victim.id + '", "' + reason + '", "' + date + '");';
-
-	// 				} else {
-	// 					killLog = 'INSERT INTO kills_' + msg.guild.id + ' (killer, victim, date) VALUES ("' + killer.id + '", "' + victim.id + '", "' + date + '");';
-	// 				}
-	// 				db.query(killLog, async function (err) {
-	// 					if (err) throw err;
-	// 					await msg.channel.send('Kill by **' + killer.username + '** on **' + victim.username + '** logged.');
-	// 				});
-	// 			}
-	// 		}
-	// 	}
-	// });
-
 };
 
 function formatDate(date) {
