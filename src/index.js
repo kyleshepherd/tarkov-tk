@@ -19,14 +19,6 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// client.once('ready', async() => {
-// 	var count = 0;
-// 	client.guilds.cache.forEach(() => {
-// 		count++;
-// 	});
-// 	console.log(count);
-// });
-
 client.on('message', commandHandler);
 
 client.login(process.env.BOT_TOKEN);
