@@ -7,6 +7,8 @@ const commandHandler = require('./commands');
 require('dotenv').config();
 
 const client = new Discord.Client();
+const disbut = require('discord-buttons');
+disbut(client);
 
 const firebaseConfig = {
 	apiKey: process.env.FIREBASE_API_KEY,
@@ -20,5 +22,16 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 client.on('message', commandHandler);
+
+client.on('clickButton', async (button) => {
+	await firebase.firestore().collection('kills').doc(button.id).delete()
+		.then(() => {
+			button.reply.send('Kill removed');
+			button.message.delete();
+		})
+		.catch((error) => {
+			console.error('Error removing kill: ', error);
+		});
+});
 
 client.login(process.env.BOT_TOKEN);

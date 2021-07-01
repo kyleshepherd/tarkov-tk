@@ -55,7 +55,7 @@ module.exports = async (msg, args) => {
 	} else {
 		// stats for single player
 		if (msg.mentions.users.size < 1) {
-			await msg.channel.send('Make sure you tag a user to see their stats e.g. `!log @Player`');
+			await msg.channel.send('Make sure you tag a user to see their stats e.g. `!tk @Player`');
 		} else {
 			const iterator = msg.mentions.users.values();
 			const player = iterator.next().value;
