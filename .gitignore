@@ -1,5 +1,4 @@
-mass_message.txt
-server_count.txt
+*.txt
 
 # Logs
 logs
