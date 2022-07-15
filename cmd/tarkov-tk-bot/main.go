@@ -60,7 +60,7 @@ func tarkovtkbotCmd() *cobra.Command {
 			log = initLogger(cfg.Log)
 			return nil
 		},
-		RunE:   tarkovtkbotRun,
+		RunE: tarkovtkbotRun,
 	}
 	// Global flags
 	pflags := cmd.PersistentFlags()
@@ -69,6 +69,7 @@ func tarkovtkbotCmd() *cobra.Command {
 	pflags.BoolP("verbose", "v", false, "verbose logging")
 	// Add sub commands
 	cmd.AddCommand(versionCmd())
+	cmd.AddCommand(serveCmd())
 	return cmd
 }
 

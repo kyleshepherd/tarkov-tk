@@ -1,0 +1,18 @@
+# Logging configuration
+[log]
+verbose = true
+console = true
+level = "debug"
+
+[discord]
+botToken = ""
+removeCommands = true
+guildId = ""
+
+[firebase]
+apiKey = ""
+authDomain = ""
+projectId = ""
+storageBucket = ""
+messagingSenderId = ""
+appId = ""

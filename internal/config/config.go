@@ -10,7 +10,9 @@ const AppName = "tarkov-tk-bot"
 
 // Config stores configuration options set by configuration file or env vars
 type Config struct {
-	Log Log
+	Log      Log
+	Discord  Discord
+	Firebase Firebase
 }
 
 // Log contains logging configuration
@@ -20,11 +22,31 @@ type Log struct {
 	Level   string
 }
 
+type Discord struct {
+	BotToken       string
+	RemoveCommands bool
+	GuildID        string
+}
+
+type Firebase struct {
+	APIKey            string
+	AuthDomain        string
+	ProjectID         string
+	StorageBucket     string
+	MessagingSenderID string
+	AppID             string
+}
+
 // Default is a default configuration setup with sane defaults
 var Default = Config{
 	Log{
 		Level: zerolog.InfoLevel.String(),
 	},
+	Discord{
+		RemoveCommands: true,
+		GuildID:        "",
+	},
+	Firebase{},
 }
 
 // New constructs a new Config instance

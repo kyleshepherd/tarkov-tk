@@ -2,11 +2,10 @@
 
 Tarkov TK Discord Bot
 
-
 ## Development
 
- - Go 1.11+
- - Dependencies managed with `go mod`
+- Go 1.11+
+- Dependencies managed with `go mod`
 
 ### Setup
 
@@ -22,6 +21,7 @@ Dependencies are managed using `go mod` (introduced in 1.11), their versions
 are tracked in `go.mod`.
 
 To add a dependency:
+
 ```
 go get url/to/origin
 ```
@@ -38,8 +38,11 @@ Alternatively a config file path can be provided through the
 -c/--config CLI flag.
 
 #### Example tarkov-tk-bot.toml
+
 ```toml
 [log]
 console = true
 level = "debug"  # [debug|info|error]
 ```
+
+https://discord.com/oauth2/authorize?client_id=959082641737515108&scope=applications.commands&scope=bot&perms=534723951680

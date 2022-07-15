@@ -33,3 +33,7 @@ _testmain.go
 .env
 .envrc
 .vscode
+
+configs/dev.toml
+configs/prod.toml
+service-account-file.json
