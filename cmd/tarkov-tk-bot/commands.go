@@ -49,11 +49,11 @@ var commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "tkreset",
-		Description: "TODO: This command will reset the TK server data for your channel. **THIS WILL DELETE ALL TK LOGS**",
+		Description: "Reset the TK server data for your channel. **THIS WILL DELETE ALL TK LOGS**",
 	},
 	{
 		Name:        "tkinfo",
-		Description: "TODO: Some info about the project and the creator, Kyle",
+		Description: "Some info about the project and the creator, Kyle",
 	},
 	{
 		Name:        "tkremove",

@@ -329,7 +329,15 @@ var (
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: fmt.Sprintf("Reset server data"),
+					Content: fmt.Sprintf("Serve data successfully reset"),
+				},
+			})
+		},
+		"tkinfo": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("**Thank you for using Tarkov TK**\n\nTarkov TK is still a work in progress, so if you have any suggestions or issues, pleaset let me know via Twitter https://twitter.com/KyleShepherdDev\n\nAlso if you enjoy the bot and want to support the development and maintenance, any help would be appreciated https://patreon.com/tarkovtk"),
 				},
 			})
 		},
