@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"sort"
-	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -62,7 +61,7 @@ var (
 				"serverId": i.GuildID,
 			})
 			if err != nil {
-				fmt.Printf("Failed logging kill: %v\n", err)
+				log.Printf("err: failed logging kill: %v\n", err)
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
 					Data: &discordgo.InteractionResponseData{
@@ -91,7 +90,7 @@ var (
 					break
 				}
 				if err != nil {
-					fmt.Printf("Failed getting kills: %v\n", err)
+					log.Printf("err: failed getting kills: %v\n", err)
 					s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 						Type: discordgo.InteractionResponseChannelMessageWithSource,
 						Data: &discordgo.InteractionResponseData{
@@ -220,6 +219,13 @@ var (
 			})
 		},
 		"tkstats": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			users, err := s.GuildMembers(i.GuildID, "", 1000)
+			if err != nil {
+				fmt.Printf("Failed getting guild members: %v\n", err)
+				s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Could not get kills for server. Please try again\n"))
+				return
+			}
+
 			var killer *discordgo.User
 			if len(i.ApplicationCommandData().Options) > 0 {
 				killer = i.ApplicationCommandData().Options[0].UserValue(s)
@@ -234,14 +240,14 @@ var (
 
 			kills := []Kill{}
 
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: fmt.Sprintf("Generating CSV..."),
-				},
-			})
+			// s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			// 	Type: discordgo.InteractionResponseChannelMessageWithSource,
+			// 	Data: &discordgo.InteractionResponseData{
+			// 		Content: fmt.Sprintf("Generating CSV..."),
+			// 	},
+			// })
 
-			var wg sync.WaitGroup
+			// var wg sync.WaitGroup
 
 			for {
 				doc, err := iter.Next()
@@ -253,31 +259,37 @@ var (
 					s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Could not get kills for server. Please try again\n"))
 					return
 				}
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
-					var k Kill
-					doc.DataTo(&k)
-					kKiller, _ := s.GuildMember(i.GuildID, k.Killer)
-					if kKiller.Nick != "" {
-						k.Killer = kKiller.Nick
-					} else {
-						k.Killer = kKiller.User.Username
+				// wg.Add(1)
+				// go func() {
+				// defer wg.Done()
+				var k Kill
+				doc.DataTo(&k)
+				for _, kU := range users {
+					if kU.User.ID == k.Killer {
+						if kU.Nick != "" {
+							k.Killer = kU.Nick
+						} else {
+							k.Killer = kU.User.Username
+						}
 					}
-					kVictim, _ := s.GuildMember(i.GuildID, k.Victim)
-					if kVictim.Nick != "" {
-						k.Victim = kVictim.Nick
-					} else {
-						k.Victim = kVictim.User.Username
+				}
+				for _, vU := range users {
+					if vU.User.ID == k.Killer {
+						if vU.Nick != "" {
+							k.Killer = vU.Nick
+						} else {
+							k.Killer = vU.User.Username
+						}
 					}
-					kills = append(kills, k)
-				}()
+				}
+				kills = append(kills, k)
+				// }()
 			}
 
-			wg.Wait()
+			// wg.Wait()
 
 			csvBuffer := &bytes.Buffer{}
-			err := gocsv.Marshal(kills, csvBuffer)
+			err = gocsv.Marshal(kills, csvBuffer)
 
 			if err != nil {
 				fmt.Printf("Failed marshalling data: %v\n", err)
@@ -293,13 +305,16 @@ var (
 				fileName = fmt.Sprintf("%s-TarkovTKStats-%s.csv", guild.Name, time.Now().Format("2006-01-02"))
 			}
 
-			s.ChannelMessageSendComplex(i.ChannelID, &discordgo.MessageSend{
-				Content: fmt.Sprintf("Successfully generated server stats"),
-				Files: []*discordgo.File{
-					{
-						Name:        fileName,
-						ContentType: "text/csv",
-						Reader:      csvBuffer,
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("Successfully generated server stats"),
+					Files: []*discordgo.File{
+						{
+							Name:        fileName,
+							ContentType: "text/csv",
+							Reader:      csvBuffer,
+						},
 					},
 				},
 			})
@@ -324,6 +339,16 @@ var (
 					return
 				}
 				_, err = doc.Ref.Delete(ctx)
+				if err != nil {
+					fmt.Printf("Failed resetting server data: %v\n", err)
+					s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+						Type: discordgo.InteractionResponseChannelMessageWithSource,
+						Data: &discordgo.InteractionResponseData{
+							Content: fmt.Sprintf("Could not reset kills for server. Please try again\n"),
+						},
+					})
+					return
+				}
 			}
 
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -338,6 +363,14 @@ var (
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Content: fmt.Sprintf("**Thank you for using Tarkov TK**\n\nTarkov TK is still a work in progress, so if you have any suggestions or issues, pleaset let me know via Twitter https://twitter.com/KyleShepherdDev\n\nAlso if you enjoy the bot and want to support the development and maintenance, any help would be appreciated https://patreon.com/tarkovtk"),
+				},
+			})
+		},
+		"tkremove": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("Test"),
 				},
 			})
 		},
