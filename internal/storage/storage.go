@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -32,7 +33,7 @@ type KillLister interface {
 }
 
 type KillCloser interface {
-	CloseKillStore()
+	Close()
 }
 
 type Kill struct {
@@ -42,4 +43,12 @@ type Kill struct {
 	Victim   string    `firestore:"victim"`
 	Reason   string    `firestore:"reason"`
 	Date     time.Time `firestore:"date"`
+}
+
+type ErrNotFound struct {
+	Key string
+}
+
+func (e *ErrNotFound) Error() string {
+	return fmt.Sprintf("Kill not found: %s", e.Key)
 }

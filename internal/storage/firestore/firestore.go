@@ -7,6 +7,9 @@ import (
 	firebase "firebase.google.com/go"
 	"github.com/kyleshepherd/discord-tk-bot/internal/storage"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type (
@@ -15,9 +18,10 @@ type (
 	}
 )
 
-func NewKillStore(ctx context.Context, projectID string) (*KillStore, error) {
+func NewKillStore(ctx context.Context, projectID string, credentialsFilePath string) (*KillStore, error) {
 	conf := &firebase.Config{ProjectID: projectID}
-	app, err := firebase.NewApp(ctx, conf)
+	opt := option.WithCredentialsFile(credentialsFilePath)
+	app, err := firebase.NewApp(ctx, conf, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -34,6 +38,9 @@ func NewKillStore(ctx context.Context, projectID string) (*KillStore, error) {
 
 func (s *KillStore) GetKillByID(ctx context.Context, id string) (*storage.Kill, error) {
 	dsnap, err := s.client.Collection("kills").Doc(id).Get(ctx)
+	if err != nil && status.Code(err) == codes.NotFound {
+		return nil, &storage.ErrNotFound{Key: id}
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +53,9 @@ func (s *KillStore) GetKillByID(ctx context.Context, id string) (*storage.Kill, 
 }
 
 func (s *KillStore) CreateKill(ctx context.Context, kill *storage.Kill) (*storage.Kill, error) {
-	_, _, err := s.client.Collection("kills").Add(ctx, kill)
+	ref := s.client.Collection("kills").NewDoc()
+	kill.ID = ref.ID
+	_, err := ref.Set(ctx, kill)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +119,6 @@ func iterateKills(iter *firestore.DocumentIterator) ([]*storage.Kill, error) {
 	return kills, nil
 }
 
-func (s *KillStore) CloseKillStore() {
+func (s *KillStore) Close() {
 	s.client.Close()
 }
