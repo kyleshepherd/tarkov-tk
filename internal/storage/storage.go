@@ -10,6 +10,7 @@ type KillStore interface {
 	KillPutter
 	KillDeleter
 	KillLister
+	KillCloser
 }
 
 type KillGetter interface {
@@ -28,6 +29,10 @@ type KillDeleter interface {
 type KillLister interface {
 	ListKillsForServer(ctx context.Context, serverId string) ([]*Kill, error)
 	ListPlayerKillsForServer(ctx context.Context, serverId string, killerId string) ([]*Kill, error)
+}
+
+type KillCloser interface {
+	CloseKillStore()
 }
 
 type Kill struct {
