@@ -1,24 +1,48 @@
-# Tarkov TK
+# tarkov-tk-bot
 
-### NOTICE
+Tarkov TK Discord Bot
 
-Hey everyone, Kyle here. The bot is back up! I've created a Patreon to help with hosting and upkeep costs! Check it out <a href="http://patreon.com/tarkovtk">here</a>.
+## Development
 
-# About the bot
+- Go 1.11+
+- Dependencies managed with `go mod`
 
-Tarkov TK is a Discord bot built for tracking team kills in Escape From Tarkov.
+### Setup
 
-The bot can be installed via this link: <a href="https://discordapp.com/oauth2/authorize?client_id=686242341442289737&scope=bot" target="_blank">Install Bot</a>
+These steps will describe how to setup this project for active development. Adjust paths to your desire.
 
-Once the bot is installed in your server, you can initalise it by sending the command `!tkstart` in your server. You can then do things such as:
+1. Clone the repository: `git clone github.com/kyleshepherd/discord-tk-bot tarkov-tk-bot`
+2. Build: `make build`
+3. 🍻
 
-<ul>
-<li>Log a team kill</li>
-<li>View players with the most team kills</li>
-<li>View players with the most team deaths</li>
-<li>View individual player stats</li>
-</ul>
+### Dependencies
 
-Type `!tkhelp` for guidance on using the bot's commands and `!tkinfo` for some info about the project and how you can support me in developing it further.
+Dependencies are managed using `go mod` (introduced in 1.11), their versions
+are tracked in `go.mod`.
 
-Any suggestions or issues, send me a DM on <a href="https://twitter.com/KyleShepherdDev" target="_blank">Twitter</a>, and if you'd care to support me, check out my <a href="https://ko-fi.com/kyleshepherd" target="_blank">Kofi</a>
+To add a dependency:
+
+```
+go get url/to/origin
+```
+
+### Configuration
+
+Configuration can be provided through a toml file, these are loaded
+in order from:
+
+- `/etc/tarkov-tk-bot/tarkov-tk-bot.toml`
+- `$HOME/.config/tarkov-tk-bot.toml`
+
+Alternatively a config file path can be provided through the
+-c/--config CLI flag.
+
+#### Example tarkov-tk-bot.toml
+
+```toml
+[log]
+console = true
+level = "debug"  # [debug|info|error]
+```
+
+https://discord.com/oauth2/authorize?client_id=959082641737515108&scope=applications.commands&scope=bot&perms=534723951680
