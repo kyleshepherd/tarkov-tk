@@ -2,6 +2,7 @@ package firestore
 
 import (
 	"context"
+	"fmt"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go"
@@ -20,7 +21,14 @@ type (
 
 func NewKillStore(ctx context.Context, projectID string, credentialsFilePath string) (*KillStore, error) {
 	conf := &firebase.Config{ProjectID: projectID}
-	opt := option.WithCredentialsFile(credentialsFilePath)
+
+	var opt option.ClientOption
+
+	if credentialsFilePath != "" {
+		opt = option.WithCredentialsFile(credentialsFilePath)
+	}
+
+	fmt.Printf("credential path: %s\n", credentialsFilePath)
 	app, err := firebase.NewApp(ctx, conf, opt)
 	if err != nil {
 		return nil, err

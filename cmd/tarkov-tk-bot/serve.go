@@ -35,7 +35,7 @@ func serveCmd() *cobra.Command {
 
 func serveRun(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
-	ks, err := firestore.NewKillStore(ctx, "tarkov-tk-dev", "./service-account-file.json")
+	ks, err := firestore.NewKillStore(ctx, cfg.Firebase.ProjectID, cfg.Firebase.ServiceAccountFilePath)
 	if err != nil {
 		log.Fatal().Err(err)
 	}

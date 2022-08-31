@@ -29,12 +29,8 @@ type Discord struct {
 }
 
 type Firebase struct {
-	APIKey            string
-	AuthDomain        string
-	ProjectID         string
-	StorageBucket     string
-	MessagingSenderID string
-	AppID             string
+	ProjectID              string
+	ServiceAccountFilePath string
 }
 
 // Default is a default configuration setup with sane defaults
