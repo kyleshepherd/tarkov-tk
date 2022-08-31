@@ -1,6 +1,6 @@
 # Stage 1 - Binary Build
 # BUILD_X args should be passed at build time as docker build args
-FROM golang:1.17.3-alpine3.13 AS builder
+FROM golang:1.18.5-alpine3.16 AS builder
 ARG BIN_VERSION
 ARG GIT_COMMIT
 ARG GIT_SHA

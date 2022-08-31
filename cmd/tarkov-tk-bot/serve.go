@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"sort"
+	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -33,7 +35,22 @@ func serveCmd() *cobra.Command {
 	}
 }
 
+func listen(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
+}
+
+func handler() error {
+	http.HandleFunc("/", listen)
+	err := http.ListenAndServe(":5000", nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func serveRun(cmd *cobra.Command, args []string) error {
+	go handler()
 	ctx := context.Background()
 	ks, err := firestore.NewKillStore(ctx, cfg.Firebase.ProjectID, cfg.Firebase.ServiceAccountFilePath)
 	if err != nil {
@@ -63,31 +80,23 @@ func serveRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	cmds, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, cfg.Discord.GuildID, commands)
 	if cfg.Discord.GuildID != "" {
-		log.Printf("Adding commands to guild: %s...\n", cfg.Discord.GuildID)
+		log.Printf("Commands added to guild: %s...\n", cfg.Discord.GuildID)
 	} else {
-		log.Printf("Adding commands...\n")
+		log.Printf("Commands added...\n")
 	}
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
-	for i, v := range commands {
-		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, cfg.Discord.GuildID, v)
-		if err != nil {
-			log.Fatal().Err(err)
-			return err
-		}
-		registeredCommands[i] = cmd
-	}
-
 	defer s.Close()
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
+	sig := []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT, os.Interrupt, os.Kill}
+	signal.Notify(stop, sig...)
 	fmt.Printf("Press Ctrl+C to exit\n")
 	<-stop
 
 	if cfg.Discord.RemoveCommands {
 		log.Printf("Removing commands...\n")
-		for _, v := range registeredCommands {
+		for _, v := range cmds {
 			err := s.ApplicationCommandDelete(s.State.User.ID, cfg.Discord.GuildID, v.ID)
 			if err != nil {
 				log.Fatal().Err(err)

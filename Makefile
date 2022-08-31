@@ -4,7 +4,7 @@ PKG      := github.com/kyleshepherd/discord-tk-bot
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 
 # Docker
-DOCKER_REGISTRY = n
+DOCKER_REGISTRY = gcr.io/tarkov-tk-dev/discord-bot
 
 # Versioning
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
@@ -70,7 +70,36 @@ run: GOBUILDFLAGS += -i
 run: build
 	@$(BIN_OUTDIR)/$(BIN_NAME)
 
+# Build docker image
+.PHONY: image
+image:
+	docker build \
+		--force-rm \
+		--build-arg BIN_VERSION=$(BIN_VERSION) \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg GIT_SHA=$(GIT_SHA) \
+		--build-arg GIT_TAG=$(GIT_TAG) \
+		--build-arg GIT_DIRTY=$(GIT_DIRTY) \
+		--build-arg GOPROXY \
+		--build-arg GONOSUMDB \
+		-f ./build/package/Dockerfile \
+		-t $(DOCKER_REGISTRY):$(DOCKER_TAG) .
 
+# Build docker image
+.PHONY: imagex
+imagex:
+	docker buildx build \
+		--platform linux/amd64 \
+		--force-rm \
+		--build-arg BIN_VERSION=$(BIN_VERSION) \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg GIT_SHA=$(GIT_SHA) \
+		--build-arg GIT_TAG=$(GIT_TAG) \
+		--build-arg GIT_DIRTY=$(GIT_DIRTY) \
+		--build-arg GOPROXY \
+		--build-arg GONOSUMDB \
+		-f ./build/package/Dockerfile \
+		-t $(DOCKER_REGISTRY):$(DOCKER_TAG) .
 
 # Run test suite
 .PHONY: test
