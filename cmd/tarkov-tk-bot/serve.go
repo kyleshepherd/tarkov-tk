@@ -54,13 +54,14 @@ func serveRun(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	ks, err := firestore.NewKillStore(ctx, cfg.Firebase.ProjectID, cfg.Firebase.ServiceAccountFilePath)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Error().Err(err)
+		return err
 	}
 	store = ks
 	defer store.Close()
 	s, err := discordgo.New("Bot " + cfg.Discord.BotToken)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Error().Err(err)
 		return err
 	}
 
@@ -76,7 +77,7 @@ func serveRun(cmd *cobra.Command, args []string) error {
 
 	err = s.Open()
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Error().Err(err)
 		return err
 	}
 
@@ -99,7 +100,7 @@ func serveRun(cmd *cobra.Command, args []string) error {
 		for _, v := range cmds {
 			err := s.ApplicationCommandDelete(s.State.User.ID, cfg.Discord.GuildID, v.ID)
 			if err != nil {
-				log.Fatal().Err(err)
+				log.Error().Err(err)
 				return err
 			}
 		}
@@ -164,16 +165,23 @@ var (
 				return
 			}
 
+			msgContent := fmt.Sprintf("Kill by **%s** on **%s** logged", killer.Username, victim.Username)
+			if kill.Reason != "" {
+				msgContent += fmt.Sprintf(": \"**%s**\"", kill.Reason)
+			}
+			msgContent += fmt.Sprintf("\n")
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: fmt.Sprintf("Kill by **%s** on **%s** logged\n", killer.Username, victim.Username),
+					Content: msgContent,
 				},
 			})
 		},
 		"tkkills": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			ctx := context.Background()
 			kills, err := store.ListKillsForServer(ctx, i.GuildID)
+			users, err := s.GuildMembers(i.GuildID, "", 1000)
 
 			if err != nil {
 				log.Printf("err: failed getting kills: %v\n", err)
@@ -208,15 +216,14 @@ var (
 
 			for x, k := range playerKills {
 				playerName := ""
-				player, err := s.GuildMember(i.GuildID, k.Player)
-				if err != nil {
-					log.Error().Err(err)
-					return
-				}
-				if player.Nick != "" {
-					playerName = player.Nick
-				} else {
-					playerName = player.User.Username
+				for _, u := range users {
+					if k.Player == u.User.ID {
+						if u.Nick != "" {
+							playerName = u.Nick
+						} else {
+							playerName = u.User.Username
+						}
+					}
 				}
 
 				margs = append(margs, x+1, playerName, k.Count)
@@ -233,6 +240,12 @@ var (
 		"tkdeaths": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			ctx := context.Background()
 			kills, err := store.ListKillsForServer(ctx, i.GuildID)
+			users, err := s.GuildMembers(i.GuildID, "", 1000)
+			if err != nil {
+				log.Error().Err(err)
+				s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Could not get kills for server. Please try again\n"))
+				return
+			}
 
 			if err != nil {
 				log.Error().Err(err)
@@ -267,15 +280,14 @@ var (
 
 			for x, k := range playerDeaths {
 				playerName := ""
-				player, err := s.GuildMember(i.GuildID, k.Player)
-				if err != nil {
-					log.Error().Err(err)
-					return
-				}
-				if player.Nick != "" {
-					playerName = player.Nick
-				} else {
-					playerName = player.User.Username
+				for _, u := range users {
+					if k.Player == u.User.ID {
+						if u.Nick != "" {
+							playerName = u.Nick
+						} else {
+							playerName = u.User.Username
+						}
+					}
 				}
 
 				margs = append(margs, x+1, playerName, k.Count)
@@ -291,19 +303,18 @@ var (
 		},
 		"tkstats": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			ctx := context.Background()
-			// users, err := s.GuildMembers(i.GuildID, "", 1000)
-			// if err != nil {
-			// 	log.Error().Err(err)
-			// 	s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Could not get kills for server. Please try again\n"))
-			// 	return
-			// }
+			users, err := s.GuildMembers(i.GuildID, "", 1000)
+			if err != nil {
+				log.Error().Err(err)
+				s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Could not get kills for server. Please try again\n"))
+				return
+			}
 			var killer *discordgo.User
 			if len(i.ApplicationCommandData().Options) > 0 {
 				killer = i.ApplicationCommandData().Options[0].UserValue(s)
 			}
 
 			var kills []*storage.Kill
-			var err error
 
 			if killer != nil {
 				kills, err = store.ListPlayerKillsForServer(ctx, i.GuildID, killer.ID)
@@ -318,6 +329,26 @@ var (
 					log.Error().Err(err)
 					s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Could not get kills for server. Please try again\n"))
 					return
+				}
+			}
+
+			for _, k := range kills {
+				for _, u := range users {
+					if k.Killer == u.User.ID {
+						if u.Nick != "" {
+							k.Killer = u.Nick
+						} else {
+							k.Killer = u.User.Username
+						}
+					}
+
+					if k.Victim == u.User.ID {
+						if u.Nick != "" {
+							k.Victim = u.Nick
+						} else {
+							k.Victim = u.User.Username
+						}
+					}
 				}
 			}
 

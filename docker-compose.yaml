@@ -6,7 +6,7 @@ services:
     command:
       - serve
     environment:
-      - TARKOVTKBOT_DISCORD_BOTTOKEN=OTU5MDgyNjQxNzM3NTE1MTA4.YkWtUA.MN_gjSaE1pv_XJRAmUfpICfIOKs
+      - TARKOVTKBOT_DISCORD_BOTTOKEN=
       - TARKOVTKBOT_FIREBASE_PROJECTID=tarkov-tk-dev
       - TARKOVTKBOT_FIREBASE_SERVICEACCOUNTFILEPATH=/etc/tarkovtk/service-account-file.json
       - TARKOVTKBOT_LOG_VERBOSE=true

@@ -37,8 +37,8 @@ type KillCloser interface {
 }
 
 type Kill struct {
-	ID       string    `firestore:"id"`
-	ServerID string    `firestore:"serverId"`
+	ID       string    `firestore:"id" csv:"-"`
+	ServerID string    `firestore:"serverId" csv:"-"`
 	Killer   string    `firestore:"killer"`
 	Victim   string    `firestore:"victim"`
 	Reason   string    `firestore:"reason"`
