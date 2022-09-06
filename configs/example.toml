@@ -10,9 +10,5 @@ removeCommands = true
 guildId = ""
 
 [firebase]
-apiKey = ""
-authDomain = ""
 projectId = ""
-storageBucket = ""
-messagingSenderId = ""
-appId = ""
+serviceAccountFilePath = ""

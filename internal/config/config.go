@@ -29,12 +29,8 @@ type Discord struct {
 }
 
 type Firebase struct {
-	APIKey            string
-	AuthDomain        string
-	ProjectID         string
-	StorageBucket     string
-	MessagingSenderID string
-	AppID             string
+	ProjectID              string
+	ServiceAccountFilePath string
 }
 
 // Default is a default configuration setup with sane defaults
@@ -52,7 +48,7 @@ var Default = Config{
 // New constructs a new Config instance
 func New(opts ...config.Option) (Config, error) {
 	c := Default
-	v := config.ViperWithDefaults("tarkov-tk-bot")
+	v := config.ViperWithDefaults("tarkovtkbot")
 	err := config.ReadInConfig(v, &c, opts...)
 	if err != nil {
 		return c, err
