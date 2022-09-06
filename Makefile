@@ -34,7 +34,7 @@ LDFLAGS += -X $(PKG)/internal/version.GitTreeState=${GIT_DIRTY}
 LDFLAGS += -X $(PKG)/internal/version.Version=${BIN_VERSION}
 
 # CGO
-CGO ?= 1
+CGO ?= 0
 
 # Go Build Flags
 GOBUILDFLAGS :=

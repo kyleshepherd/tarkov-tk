@@ -39,7 +39,7 @@ var Default = Config{
 		Level: zerolog.InfoLevel.String(),
 	},
 	Discord{
-		RemoveCommands: true,
+		RemoveCommands: false,
 		GuildID:        "",
 	},
 	Firebase{},
