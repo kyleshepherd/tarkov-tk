@@ -66,12 +66,19 @@ func serveRun(cmd *cobra.Command, args []string) error {
 	}
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		log.Printf("Logged in as: %v#%v\n", s.State.User.Username, s.State.User.Discriminator)
+		log.Info().Msgf("Logged in as: %v#%v\n", s.State.User.Username, s.State.User.Discriminator)
 	})
 
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
-			h(s, i)
+		switch i.Type {
+		case discordgo.InteractionApplicationCommand:
+			if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
+				h(s, i)
+			}
+		case discordgo.InteractionMessageComponent:
+			if h, ok := componentHandlers[i.MessageComponentData().CustomID]; ok {
+				h(s, i)
+			}
 		}
 	})
 
@@ -81,23 +88,29 @@ func serveRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cmds, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, cfg.Discord.GuildID, commands)
+	_, err = s.ApplicationCommandBulkOverwrite(s.State.User.ID, cfg.Discord.GuildID, commands)
+	if err != nil {
+		log.Error().Err(err)
+		return err
+	}
+	allCmds, _ := s.ApplicationCommands(s.State.User.ID, cfg.Discord.GuildID)
+
 	if cfg.Discord.GuildID != "" {
-		log.Printf("Commands added to guild: %s...\n", cfg.Discord.GuildID)
+		log.Info().Msgf("Commands added to guild: %s...\n", cfg.Discord.GuildID)
 	} else {
-		log.Printf("Commands added...\n")
+		log.Info().Msg("Commands added...\n")
 	}
 	defer s.Close()
 
 	stop := make(chan os.Signal, 1)
 	sig := []os.Signal{syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT, os.Interrupt, os.Kill}
 	signal.Notify(stop, sig...)
-	fmt.Printf("Press Ctrl+C to exit\n")
+	log.Info().Msg("Press Ctrl+C to exit\n")
 	<-stop
 
 	if cfg.Discord.RemoveCommands {
-		log.Printf("Removing commands...\n")
-		for _, v := range cmds {
+		log.Info().Msg("Removing commands...\n")
+		for _, v := range allCmds {
 			err := s.ApplicationCommandDelete(s.State.User.ID, cfg.Discord.GuildID, v.ID)
 			if err != nil {
 				log.Error().Err(err)
@@ -106,7 +119,7 @@ func serveRun(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	log.Printf("Gracefully shutdowning\n")
+	log.Info().Msg("Gracefully shutdowning\n")
 	return nil
 }
 
@@ -134,6 +147,56 @@ func getPlayersFromKills(kills []*storage.Kill, getKiller bool) []string {
 }
 
 var (
+	componentHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"removeKill": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			ctx := context.Background()
+			kills, err := store.ListKillsForServer(ctx, i.GuildID)
+			if err != nil {
+				log.Error().Err(err)
+				return
+			}
+
+			if len(kills) < 1 {
+				err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "No kills to remove",
+					},
+				})
+
+				if err != nil {
+					log.Error().Err(err)
+					return
+				}
+			}
+
+			kill := kills[0]
+
+			err = store.DeleteKill(ctx, kill.ID)
+			if err != nil {
+				log.Error().Err(err)
+				return
+			}
+
+			err = s.ChannelMessageDelete(i.ChannelID, i.Message.ID)
+			if err != nil {
+				log.Error().Err(err)
+				return
+			}
+
+			err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "**Kill removed**",
+				},
+			})
+
+			if err != nil {
+				log.Error().Err(err)
+				return
+			}
+		},
+	}
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"tklog": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			ctx := context.Background()
@@ -143,6 +206,10 @@ var (
 
 			if len(i.ApplicationCommandData().Options) > 2 {
 				reason = i.ApplicationCommandData().Options[2].StringValue()
+			}
+
+			if len(reason) > 500 {
+				reason = reason[:500]
 			}
 
 			kill := storage.Kill{
@@ -184,7 +251,7 @@ var (
 			users, err := s.GuildMembers(i.GuildID, "", 1000)
 
 			if err != nil {
-				log.Printf("err: failed getting kills: %v\n", err)
+				log.Error().Err(err)
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 					Type: discordgo.InteractionResponseChannelMessageWithSource,
 					Data: &discordgo.InteractionResponseData{
@@ -310,8 +377,14 @@ var (
 				return
 			}
 			var killer *discordgo.User
-			if len(i.ApplicationCommandData().Options) > 0 {
-				killer = i.ApplicationCommandData().Options[0].UserValue(s)
+			var shouldCsv bool
+			for _, o := range i.ApplicationCommandData().Options {
+				switch o.Type {
+				case discordgo.ApplicationCommandOptionUser:
+					killer = o.UserValue(s)
+				case discordgo.ApplicationCommandOptionBoolean:
+					shouldCsv = o.BoolValue()
+				}
 			}
 
 			var kills []*storage.Kill
@@ -352,36 +425,83 @@ var (
 				}
 			}
 
-			csvBuffer := &bytes.Buffer{}
-			err = gocsv.Marshal(kills, csvBuffer)
-
-			if err != nil {
-				log.Error().Err(err)
-				return
-			}
 			guild, _ := s.Guild(i.GuildID)
 
-			var fileName string
+			if shouldCsv {
+				csvBuffer := &bytes.Buffer{}
+				err = gocsv.Marshal(kills, csvBuffer)
 
-			if killer != nil {
-				fileName = fmt.Sprintf("%s-%s-TarkovTKStats-%s.csv", killer.Username, guild.Name, time.Now().Format("2006-01-02"))
-			} else {
-				fileName = fmt.Sprintf("%s-TarkovTKStats-%s.csv", guild.Name, time.Now().Format("2006-01-02"))
-			}
+				if err != nil {
+					log.Error().Err(err)
+					return
+				}
 
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: fmt.Sprintf("Successfully generated server stats"),
-					Files: []*discordgo.File{
-						{
-							Name:        fileName,
-							ContentType: "text/csv",
-							Reader:      csvBuffer,
+				var fileName string
+
+				if killer != nil {
+					fileName = fmt.Sprintf("%s-%s-TarkovTKStats-%s.csv", killer.Username, guild.Name, time.Now().Format("2006-01-02"))
+				} else {
+					fileName = fmt.Sprintf("%s-TarkovTKStats-%s.csv", guild.Name, time.Now().Format("2006-01-02"))
+				}
+
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: fmt.Sprintf("Successfully generated server stats"),
+						Files: []*discordgo.File{
+							{
+								Name:        fileName,
+								ContentType: "text/csv",
+								Reader:      csvBuffer,
+							},
 						},
 					},
-				},
-			})
+				})
+
+				if err != nil {
+					log.Error().Err(err)
+				}
+			} else {
+				response := fmt.Sprintf("**Stats for %s**\n\n", guild.Name)
+
+				hasSentIResponse := false
+
+				for _, k := range kills {
+					date := fmt.Sprintf("%d/%d/%d", k.Date.Day(), k.Date.Month(), k.Date.Year())
+					kMsg := fmt.Sprintf("%s - **%s** killed **%s**", date, k.Killer, k.Victim)
+					if k.Reason != "" {
+						kMsg += fmt.Sprintf(": \"%s\"", k.Reason)
+					}
+					kMsg += fmt.Sprint("\n\n")
+					if len(response+kMsg) > 2000 {
+						if !hasSentIResponse {
+							s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+								Type: discordgo.InteractionResponseChannelMessageWithSource,
+								Data: &discordgo.InteractionResponseData{
+									Content:  response,
+									CustomID: "test",
+								},
+							})
+							hasSentIResponse = true
+						} else {
+							s.ChannelMessageSend(i.ChannelID, response)
+						}
+						response = "\n"
+					}
+					response += kMsg
+				}
+
+				if !hasSentIResponse {
+					s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+						Type: discordgo.InteractionResponseChannelMessageWithSource,
+						Data: &discordgo.InteractionResponseData{
+							Content: response,
+						},
+					})
+				} else {
+					s.ChannelMessageSend(i.ChannelID, response)
+				}
+			}
 		},
 		"tkreset": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			ctx := context.Background()
@@ -413,10 +533,76 @@ var (
 			})
 		},
 		"tkremove": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			ctx := context.Background()
+			kills, err := store.ListKillsForServer(ctx, i.GuildID)
+			if err != nil {
+				log.Error().Err(err)
+				s.ChannelMessageSend(i.ChannelID, fmt.Sprintf("Could not get kills for server. Please try again\n"))
+				return
+			}
+
+			if len(kills) == 0 {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: fmt.Sprintf("No kills currently logged"),
+					},
+				})
+			}
+
+			users, err := s.GuildMembers(i.GuildID, "", 1000)
+			kill := kills[0]
+
+			for _, u := range users {
+				if kill.Killer == u.User.ID {
+					if u.Nick != "" {
+						kill.Killer = u.Nick
+					} else {
+						kill.Killer = u.User.Username
+					}
+				}
+
+				if kill.Victim == u.User.ID {
+					if u.Nick != "" {
+						kill.Victim = u.Nick
+					} else {
+						kill.Victim = u.User.Username
+					}
+				}
+			}
+
+			kMsg := fmt.Sprintf("**%s** killed **%s**", kill.Killer, kill.Victim)
+
+			if kill.Reason != "" {
+				kMsg += fmt.Sprintf(": \"%s\"", kill.Reason)
+			}
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: fmt.Sprintf("TO DO"),
+					Content: kMsg,
+					Components: []discordgo.MessageComponent{
+						discordgo.ActionsRow{
+							Components: []discordgo.MessageComponent{
+								discordgo.Button{
+									Emoji: discordgo.ComponentEmoji{
+										Name: "🗑️",
+									},
+									Label:    "Remove Kill",
+									Style:    discordgo.DangerButton,
+									CustomID: "removeKill",
+								},
+							},
+						},
+					},
+				},
+			})
+		},
+		"tkthanks": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: fmt.Sprintf("**Thank you to everyone who uses this bot but especially to these Patreon supporters, past and present:**\nThomas Pimentel\nDale Schlegel\nWill Eudave\nJasmine\nGrndControl\nBlake Freeman\nMatryx PX\nChris James\nDenver Welch\nJared Heisler\nRyan Miers\nArch Andrews\nNorman Golden\nChris Laquidara\nG\nKyle Melton\nMichael Li\nCoop Diddy\nPBRbiter"),
 				},
 			})
 		},

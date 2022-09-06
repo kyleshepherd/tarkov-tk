@@ -37,3 +37,4 @@ _testmain.go
 configs/dev.toml
 configs/prod.toml
 service-account-file.json
+docker-compose.yaml

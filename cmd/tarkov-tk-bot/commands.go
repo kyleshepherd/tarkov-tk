@@ -22,7 +22,7 @@ var commands = []*discordgo.ApplicationCommand{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "reason",
-				Description: "Reason for TK",
+				Description: "Reason for TK (Maximum 500 characters)",
 				Required:    false,
 			},
 		},
@@ -45,6 +45,12 @@ var commands = []*discordgo.ApplicationCommand{
 				Description: "User whose kills to retrieve",
 				Required:    false,
 			},
+			{
+				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "csv",
+				Description: "Generate CSV file of stats",
+				Required:    false,
+			},
 		},
 	},
 	{
@@ -57,6 +63,10 @@ var commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "tkremove",
-		Description: "TODO",
+		Description: "Removes the last logged kill",
+	},
+	{
+		Name:        "tkthanks",
+		Description: "Shout out to my Patreons!",
 	},
 }
