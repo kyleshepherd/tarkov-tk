@@ -38,4 +38,5 @@ configs/dev.toml
 configs/prod.toml
 configs/staging.toml
 service-account-file.json
+prod-service-account.json
 docker-compose.yaml
