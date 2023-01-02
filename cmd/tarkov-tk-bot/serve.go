@@ -548,6 +548,7 @@ var (
 						Content: fmt.Sprintf("No kills currently logged"),
 					},
 				})
+				return
 			}
 
 			users, err := s.GuildMembers(i.GuildID, "", 1000)
