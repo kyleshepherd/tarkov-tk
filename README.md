@@ -15,5 +15,3 @@ Once the bot is installed in your server, you can initalise it by sending the co
 - View individual player stats and export as a CSV
 
 Any suggestions or issues, send me a DM on <a href="https://twitter.com/KyleShepherdDev" target="_blank">Twitter</a>, and if you'd care to support me, check out my <a href="http://patreon.com/tarkovtk" target="_blank">Patreon</a>
-
-kOV3_PM1jw4sQh5UkiQ-TPsnufzlkyiW
