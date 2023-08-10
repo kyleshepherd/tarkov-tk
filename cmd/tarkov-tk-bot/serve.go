@@ -168,6 +168,7 @@ var (
 					log.Error().Err(err)
 					return
 				}
+				return
 			}
 
 			kill := kills[0]
