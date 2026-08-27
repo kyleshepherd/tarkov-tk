@@ -15,3 +15,9 @@ Once the bot is installed in your server, you can then do things such as:
 - View individual player stats and export as a CSV
 
 Any suggestions or issues, send me a DM on <a href="https://twitter.com/KyleShepherdDev" target="_blank">Twitter</a>, and if you'd care to support me, check out my <a href="http://patreon.com/tarkovtk" target="_blank">Patreon</a>
+
+## Privacy
+
+The bot stores only Discord user IDs, the server ID, an optional reason and a timestamp for each logged team kill. It does not read message content.
+
+See the [Privacy Policy](PRIVACY.md) for full details, including how to have your data deleted.
